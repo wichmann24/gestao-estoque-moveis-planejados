@@ -128,9 +128,9 @@ async function start(){
    mode="local";const saved=localRead();items=saved?.items||SEED.map(([name,category,qty],i)=>({id:"seed-"+i,name,category,qty,min_qty:0,notes:"",updated_at:new Date().toISOString()}));history=JSON.parse(localStorage.getItem("estoque-history")||"[]");
    $("authCard").classList.add("hidden");$("app").classList.remove("hidden");$("logoutBtn").classList.add("hidden");setBanner("Modo local: alterações ficam apenas neste navegador. Configure o Supabase para sincronizar dispositivos.",true);render();return;
  }
- db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
+ mode="cloud";db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
  $("authCard").classList.remove("hidden");$("app").classList.add("hidden");$("logoutBtn").classList.remove("hidden");$("configNotice").classList.add("hidden");
- db.auth.onAuthStateChange(async(_event,session)=>{user=session?.user||null;if(user){$("authCard").classList.add("hidden");$("app").classList.remove("hidden");try{await loadCloud()}catch(e){setBanner("Erro ao carregar a nuvem: "+e.message,true)}}else{$("authCard").classList.remove("hidden");$("app").classList.add("hidden");setBanner("Faça login para acessar seu estoque.",false)}});
+ db.auth.onAuthStateChange((_event,session)=>{user=session?.user||null;setTimeout(async()=>{if(user){$("authCard").classList.add("hidden");$("app").classList.remove("hidden");try{await loadCloud()}catch(e){setBanner("Erro ao carregar a nuvem: "+e.message,true)}}else{$("authCard").classList.remove("hidden");$("app").classList.add("hidden");setBanner("Faça login para acessar seu estoque.",false)}},0)});
  const {data}=await db.auth.getSession();if(data.session){user=data.session.user;$("authCard").classList.add("hidden");$("app").classList.remove("hidden");try{await loadCloud()}catch(e){$("app").classList.add("hidden");$("authCard").classList.remove("hidden");$("authMessage").textContent=e.message}}
 }
 $("loginBtn").addEventListener("click",async()=>{const {error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});$("authMessage").textContent=error?error.message:"Entrando…"});
