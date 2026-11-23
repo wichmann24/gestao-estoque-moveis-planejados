@@ -115,6 +115,7 @@ async function loadCloud(){
  let silverSupport=items.find(x=>x.category==="Ferragens"&&x.name==="Suporte de cabide vester Prata");
  if(oldSupport){if(silverSupport){const {error:delError}=await db.from("inventory_items").delete().eq("id",oldSupport.id).eq("user_id",user.id);if(delError)throw delError;items=items.filter(x=>x.id!==oldSupport.id)}else{const {error:renameError}=await db.from("inventory_items").update({name:"Suporte de cabide vester Prata",qty:2,updated_at:new Date().toISOString()}).eq("id",oldSupport.id).eq("user_id",user.id);if(renameError)throw renameError;oldSupport.name="Suporte de cabide vester Prata";oldSupport.qty=2;silverSupport=oldSupport}}
  if(!silverSupport){const row={id:crypto.randomUUID(),user_id:user.id,name:"Suporte de cabide vester Prata",category:"Ferragens",qty:2,min_qty:0,notes:"",updated_at:new Date().toISOString()};const {error:insertError}=await db.from("inventory_items").insert(row);if(insertError)throw insertError;items.push(toItem(row))}
+ else if(silverSupport.qty!==2){const {error:qtyError}=await db.from("inventory_items").update({qty:2,updated_at:new Date().toISOString()}).eq("id",silverSupport.id).eq("user_id",user.id);if(qtyError)throw qtyError;silverSupport.qty=2}
  // Atualiza nomes antigos para explicitar o acabamento bronze.
  for(const [oldName,newName] of [["Puxador aria 20cm","Puxador Aria Bronze 20cm"],["Puxador aria 15cm","Puxador Aria Bronze 15cm"]]){
    const oldItem=items.find(x=>x.category==="Ferragens"&&x.name===oldName);
