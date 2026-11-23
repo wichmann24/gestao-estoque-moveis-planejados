@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#10231f"><meta name="description" content="Gestão de estoque de ferragens e pistões para móveis planejados.">
-<title>Gestão de Estoque • Móveis Planejados</title>
+<title>Gestão de Estoque • Belo Móvel Planejados</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f6f4;--panel:#fff;--ink:#172522;--muted:#73817c;--line:#e3eae6;--green:#176b52;--dark:#10231f;--red:#b4483f;--amber:#a76c17;--shadow:0 12px 30px rgba(20,45,36,.07)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "DM Sans",system-ui,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
-header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid #5aa586}.head,.shell{max-width:1260px;margin:auto;padding-left:22px;padding-right:22px}.head{display:flex;justify-content:space-between;align-items:center;gap:18px}.brand{display:flex;align-items:center;gap:13px}.logo{width:48px;height:48px;border-radius:14px;background:#24443a;display:grid;place-items:center;font-size:25px}.eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#a9c9bb;font-weight:800}.brand h1{font-size:24px;line-height:1.15;margin:3px 0 0;letter-spacing:-.04em}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:10px;font-weight:700;font-size:12px;display:inline-flex;gap:7px;align-items:center;justify-content:center}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.dark{background:transparent;border-color:#49665b;color:#fff}.btn.danger{color:var(--red)}
+header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid #5aa586}.head,.shell{max-width:1260px;margin:auto;padding-left:22px;padding-right:22px}.head{display:flex;justify-content:space-between;align-items:center;gap:18px}.brand{display:flex;align-items:center;gap:13px}.logo{width:48px;height:48px;border-radius:12px;overflow:hidden;background:#000;display:grid;place-items:center;border:1px solid #d9ad45}.logo img{width:100%;height:100%;object-fit:cover}.eyebrow{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#a9c9bb;font-weight:800}.brand h1{font-size:24px;line-height:1.15;margin:3px 0 0;letter-spacing:-.04em}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 13px;border-radius:10px;font-weight:700;font-size:12px;display:inline-flex;gap:7px;align-items:center;justify-content:center}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.dark{background:transparent;border-color:#49665b;color:#fff}.btn.danger{color:var(--red)}
 .shell{padding-top:22px;padding-bottom:60px}.banner{border:1px solid #dbe8e0;background:#edf6f0;color:#315b49;border-radius:12px;padding:11px 14px;font-size:12px;display:flex;gap:9px;align-items:center;margin-bottom:17px}.banner.warn{background:#fff5e9;color:#82551b;border-color:#efdfc7}.dot{width:8px;height:8px;background:#39966d;border-radius:50%;flex:none}.banner.warn .dot{background:#c78a32}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.stat,.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow)}.stat{padding:16px 18px}.label{font-size:11px;color:var(--muted);font-weight:700}.value{font-size:27px;font-weight:800;letter-spacing:-.04em;margin-top:4px}.sub{font-size:10px;color:var(--muted)}.stat.alert .value{color:var(--red)}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 19px 14px;flex-wrap:wrap}.title{font-size:16px;font-weight:800;letter-spacing:-.02em}.desc{font-size:11px;color:var(--muted);margin-top:3px}.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.search{position:relative}.search input{width:min(270px,68vw);padding:10px 12px 10px 34px;border:1px solid var(--line);border-radius:9px;background:#fbfcfb;outline:none}.search:before{content:"⌕";position:absolute;left:11px;top:5px;font-size:21px;color:#819089}
@@ -22,7 +22,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 </head>
 <body>
 <header id="header"><div class="head">
-<div class="brand"><div class="logo">📦</div><div><div class="eyebrow">Móveis planejados</div><h1>Gestão de estoque</h1></div></div>
+<div class="brand"><div class="logo"><img src="logo-belo-movel.jpg" alt="Logo Belo Móvel Planejados"></div><div><div class="eyebrow">Belo Móvel Planejados</div><h1>Gestão de estoque</h1></div></div>
 <div class="actions"><button class="btn dark" id="backupBtn">↓ Backup</button><button class="btn dark" id="logoutBtn">Sair</button><button class="btn primary" id="addBtn">＋ Novo produto</button></div>
 </div></header>
 <div id="configNotice" class="shell"><div class="banner warn"><span class="dot"></span><span><b>Modo local de demonstração.</b> Configure o Supabase para guardar dados na nuvem e sincronizar celulares e computadores.</span></div></div>
@@ -56,7 +56,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <div class="bottom">
 <section class="panel subpanel"><h3>Últimas movimentações</h3><p>Entradas, saídas e ajustes registrados.</p><div id="history" class="history"><div class="small">Nenhuma movimentação.</div></div></section>
 <section class="panel subpanel"><h3>Como usar</h3><p>Controle simples e rápido.</p><div class="small" style="line-height:1.9"><b>＋ / −</b> registra entrada ou saída de uma unidade.<br><b>Saldo atual</b> permite ajustar a quantidade.<br><b>Estoque mínimo</b> define quando o material precisa ser reposto.<br><b>Backup</b> baixa uma cópia dos dados.</div></section>
-</div><div class="footer">Gestão de Estoque • Móveis Planejados</div>
+</div><div class="footer">Gestão de Estoque • Belo Móvel Planejados</div>
 </div>
 <div class="modalback" id="modal"><form class="modal" id="productForm">
 <h2 id="modalTitle">Novo produto</h2><p id="modalDescription">Cadastre um novo material no seu estoque.</p>
