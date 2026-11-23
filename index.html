@@ -49,6 +49,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 
 <button class="tab" data-cat="Ferragens">Ferragens <span class="count" id="countFerragens"></span></button>
 <button class="tab" data-cat="Pistões">Pistões <span class="count" id="countPistoes"></span></button>
+<button class="tab" data-cat="Parafusos">Parafusos <span class="count" id="countParafusos"></span></button>
 </nav>
 <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Saldo atual</th><th>Estoque mínimo</th><th>Movimentar</th><th>Situação</th><th>Atualizado</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">Nenhum produto encontrado.</div></div>
 </section>
@@ -61,18 +62,19 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <h2>Novo produto</h2><p>Cadastre um novo material no seu estoque.</p>
 <div class="formgrid">
 <div class="fieldgroup"><label for="newName">Nome do produto</label><input class="field" id="newName" required maxlength="100" placeholder="Nome do material"></div>
-<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Ferragens</option><option>Pistões</option></select></div>
+<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Ferragens</option><option>Pistões</option><option>Parafusos</option></select></div>
 <div class="fieldgroup"><label for="newQty">Quantidade inicial</label><input class="field" id="newQty" type="number" min="0" step="1" value="0" required></div>
 <div class="fieldgroup"><label for="newMin">Estoque mínimo</label><input class="field" id="newMin" type="number" min="0" step="1" value="0" required></div>
 </div><div class="modalactions"><button type="button" class="btn" id="cancelBtn">Cancelar</button><button type="submit" class="btn primary">Adicionar</button></div>
 </form></div>
-<script src="config.js?v=20261122-2"></script>
+<script src="config.js?v=20261123-1"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const $=id=>document.getElementById(id);
 const SEED=[
 ["Sapata","Ferragens",16],["Guia superior","Ferragens",16],["Suporte cabideiro oblongo","Ferragens",8],["Sapata grande","Ferragens",5],["Freio superior","Ferragens",16],["Ponteiras","Ferragens",69],["Gatilho de corrediça","Ferragens",8],["Capa de dobradiças","Ferragens",16],["Suporte cabide","Ferragens",6],["Fechadura","Ferragens",3],["Kit RO inteligente","Ferragens",4],["Ponteira grande em par","Ferragens",6],["Rodízio 35mm","Ferragens",8],["Puxador concha bronze","Ferragens",1],["Puxador aria bronze","Ferragens",3],
-["Pistão 80N branco","Pistões",4],["Pistão 50N","Pistões",1],["Pistão 60N","Pistões",2],["Pistão 120N inverso","Pistões",3],["Pistão 80N","Pistões",6],["Pistão 140N","Pistões",2],["Pistão 80N inverso","Pistões",1],["Pistão 50N inverso","Pistões",2]
+["Pistão 80N branco","Pistões",4],["Pistão 50N","Pistões",1],["Pistão 60N","Pistões",2],["Pistão 120N inverso","Pistões",3],["Pistão 80N","Pistões",6],["Pistão 140N","Pistões",2],["Pistão 80N inverso","Pistões",1],["Pistão 50N inverso","Pistões",2],
+["Parafuso 4x40 (caixa com 500)","Parafusos",1000],["Parafuso 6x60 (caixa com 100)","Parafusos",300],["Parafuso 4x25 (caixa com 1.000)","Parafusos",3000],["Parafuso 4x16 (caixa com 1.000)","Parafusos",4000]
 ];
 const toItem=p=>({id:p.id,name:p.name,category:p.category,qty:p.qty,min_qty:p.min_qty??0,notes:p.notes??"",updated_at:p.updated_at??new Date().toISOString()});
 let db=null,user=null,items=[],history=[],category="Todos",lowOnly=false,mode="local",channel=null;
@@ -85,7 +87,7 @@ function localSave(){localStorage.setItem("estoque-local",JSON.stringify({items,
 function setBanner(text,warn=false){$("connectionText").textContent=text;$("connectionBanner").classList.toggle("warn",warn);$("configNotice").classList.toggle("hidden",!warn)}
 function render(){
  $("statProducts").textContent=items.length;$("statUnits").textContent=sum();$("statFerragens").textContent=sum("Ferragens");$("statLow").textContent=items.filter(isLow).length;
- $("countTodos").textContent=items.length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countPistoes").textContent=items.filter(x=>x.category==="Pistões").length;
+ $("countTodos").textContent=items.length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countPistoes").textContent=items.filter(x=>x.category==="Pistões").length;$("countParafusos").textContent=items.filter(x=>x.category==="Parafusos").length;
  const q=$("search").value.trim().toLocaleLowerCase("pt-BR");
  const shown=items.filter(x=>(category==="Todos"||x.category===category)&&(!lowOnly||isLow(x))&&(!q||x.name.toLocaleLowerCase("pt-BR").includes(q))).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
  $("rows").innerHTML=shown.map(x=>{let tag=x.qty===0?'<span class="tag empty">Zerado</span>':isLow(x)?'<span class="tag low">Repor</span>':'<span class="tag">Disponível</span>';
@@ -113,6 +115,13 @@ async function loadCloud(){
    const seedRows=SEED.map(([name,category,qty],i)=>({id:crypto.randomUUID(),user_id:user.id,name,category,qty,min_qty:0,notes:name==="Ponteiras"?"Quantidade consolidada das duas linhas do documento: 43 + 26.":"",updated_at:new Date().toISOString()}));
    const {error:seedError}=await db.from("inventory_items").insert(seedRows);if(seedError)throw seedError;
    items=seedRows.map(toItem);
+ }else{
+   const missing=SEED.filter(([name,cat])=>cat==="Parafusos"&&!items.some(x=>x.category===cat&&x.name===name));
+   if(missing.length){
+     const rows=missing.map(([name,category,qty])=>({id:crypto.randomUUID(),user_id:user.id,name,category,qty,min_qty:0,notes:"Quantidade inicial calculada pelas caixas informadas.",updated_at:new Date().toISOString()}));
+     const {error:insertError}=await db.from("inventory_items").insert(rows);if(insertError)throw insertError;
+     items.push(...rows.map(toItem));
+   }
  }
  render();setBanner("Conectado à nuvem. Alterações sincronizadas em tempo real.");
  if(channel)await db.removeChannel(channel);
@@ -125,7 +134,7 @@ async function start(){
  const cfg=window.ESTOQUE_CONFIG||{};
  const configured=cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY;
  if(!configured){
-   mode="local";const saved=localRead();items=(saved||SEED.map(([name,category,qty],i)=>({id:"seed-"+i,name,category,qty,min_qty:0,notes:"",updated_at:new Date().toISOString()}))).filter(x=>x.category!=="Fitas");history=JSON.parse(localStorage.getItem("estoque-history")||"[]");localSave();
+   mode="local";const saved=localRead();items=(saved||SEED.map(([name,category,qty],i)=>({id:"seed-"+i,name,category,qty,min_qty:0,notes:"",updated_at:new Date().toISOString()}))).filter(x=>x.category!=="Fitas");for(const [name,cat,qty] of SEED.filter(row=>row[1]==="Parafusos")){if(!items.some(x=>x.category===cat&&x.name===name))items.push({id:crypto.randomUUID(),name,category:cat,qty,min_qty:0,notes:"Quantidade inicial calculada pelas caixas informadas.",updated_at:new Date().toISOString()})}history=JSON.parse(localStorage.getItem("estoque-history")||"[]");localSave();
    $("authCard").classList.add("hidden");$("app").classList.remove("hidden");$("logoutBtn").classList.add("hidden");setBanner("Modo local: alterações ficam apenas neste navegador. Configure o Supabase para sincronizar dispositivos.",true);render();return;
  }
  mode="cloud";db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
