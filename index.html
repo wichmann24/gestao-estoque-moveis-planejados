@@ -67,7 +67,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <div class="fieldgroup"><label for="newMin">Estoque mínimo</label><input class="field" id="newMin" type="number" min="0" step="1" value="0" required></div>
 </div><div class="modalactions"><button type="button" class="btn" id="cancelBtn">Cancelar</button><button type="submit" class="btn primary">Adicionar</button></div>
 </form></div>
-<script src="config.js?v=20261123-3"></script>
+<script src="config.js?v=20261123-4"></script>
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const $=id=>document.getElementById(id);
@@ -111,9 +111,9 @@ async function loadCloud(){
  const {data,error}=await db.from("inventory_items").select("*").order("name");if(error)throw error;
  items=(data||[]).map(toItem);
  // Renomeia o suporte de cabide antigo, mantendo o saldo existente.
- const oldSupport=items.find(x=>x.category==="Ferragens"&&["suporte de cabide vesto","suporte de cabide vester"].includes(x.name.trim().toLocaleLowerCase("pt-BR")));
+ const oldSupport=items.find(x=>x.category==="Ferragens"&&["suporte cabide","suporte de cabide","suporte cabide vesto","suporte de cabide vesto","suporte de cabide vester"].includes(x.name.trim().toLocaleLowerCase("pt-BR")));
  let silverSupport=items.find(x=>x.category==="Ferragens"&&x.name==="Suporte de cabide vester Prata");
- if(oldSupport){if(silverSupport){const {error:delError}=await db.from("inventory_items").delete().eq("id",oldSupport.id).eq("user_id",user.id);if(delError)throw delError;items=items.filter(x=>x.id!==oldSupport.id)}else{const {error:renameError}=await db.from("inventory_items").update({name:"Suporte de cabide vester Prata",updated_at:new Date().toISOString()}).eq("id",oldSupport.id).eq("user_id",user.id);if(renameError)throw renameError;oldSupport.name="Suporte de cabide vester Prata";silverSupport=oldSupport}}
+ if(oldSupport){if(silverSupport){const {error:delError}=await db.from("inventory_items").delete().eq("id",oldSupport.id).eq("user_id",user.id);if(delError)throw delError;items=items.filter(x=>x.id!==oldSupport.id)}else{const {error:renameError}=await db.from("inventory_items").update({name:"Suporte de cabide vester Prata",qty:2,updated_at:new Date().toISOString()}).eq("id",oldSupport.id).eq("user_id",user.id);if(renameError)throw renameError;oldSupport.name="Suporte de cabide vester Prata";oldSupport.qty=2;silverSupport=oldSupport}}
  if(!silverSupport){const row={id:crypto.randomUUID(),user_id:user.id,name:"Suporte de cabide vester Prata",category:"Ferragens",qty:2,min_qty:0,notes:"",updated_at:new Date().toISOString()};const {error:insertError}=await db.from("inventory_items").insert(row);if(insertError)throw insertError;items.push(toItem(row))}
  // Atualiza nomes antigos para explicitar o acabamento bronze.
  for(const [oldName,newName] of [["Puxador aria 20cm","Puxador Aria Bronze 20cm"],["Puxador aria 15cm","Puxador Aria Bronze 15cm"]]){
