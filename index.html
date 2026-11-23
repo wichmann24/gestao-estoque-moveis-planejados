@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#10231f"><meta name="description" content="Gestão de estoque de fitas, ferragens e pistões para móveis planejados.">
+<meta name="theme-color" content="#10231f"><meta name="description" content="Gestão de estoque de ferragens e pistões para móveis planejados.">
 <title>Gestão de Estoque • Móveis Planejados</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,14 +39,14 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <section class="stats">
 <div class="stat"><div class="label">Produtos cadastrados</div><div class="value" id="statProducts">89</div><div class="sub">Itens diferentes</div></div>
 <div class="stat"><div class="label">Unidades em estoque</div><div class="value" id="statUnits">275</div><div class="sub">Soma das quantidades</div></div>
-<div class="stat"><div class="label">Fitas</div><div class="value" id="statFitas">69</div><div class="sub">Unidades cadastradas</div></div>
+<div class="stat"><div class="label">Ferragens</div><div class="value" id="statFerragens">185</div><div class="sub">Unidades cadastradas</div></div>
 <div class="stat alert"><div class="label">Abaixo do mínimo</div><div class="value" id="statLow">0</div><div class="sub">Defina os limites de reposição</div></div>
 </section>
 <section class="panel">
 <div class="toolbar"><div><div class="title">Materiais cadastrados</div><div class="desc">Edite os saldos e os mínimos diretamente na tabela.</div></div><div class="tools"><div class="search"><input id="search" type="search" placeholder="Buscar material…"></div><button class="btn" id="lowBtn">⚑ Estoque baixo</button></div></div>
 <nav class="tabs" id="tabs">
 <button class="tab active" data-cat="Todos">Todos <span class="count" id="countTodos"></span></button>
-<button class="tab" data-cat="Fitas">Fitas <span class="count" id="countFitas"></span></button>
+
 <button class="tab" data-cat="Ferragens">Ferragens <span class="count" id="countFerragens"></span></button>
 <button class="tab" data-cat="Pistões">Pistões <span class="count" id="countPistoes"></span></button>
 </nav>
@@ -61,7 +61,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <h2>Novo produto</h2><p>Cadastre um novo material no seu estoque.</p>
 <div class="formgrid">
 <div class="fieldgroup"><label for="newName">Nome do produto</label><input class="field" id="newName" required maxlength="100" placeholder="Nome do material"></div>
-<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Fitas</option><option>Ferragens</option><option>Pistões</option></select></div>
+<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Ferragens</option><option>Pistões</option></select></div>
 <div class="fieldgroup"><label for="newQty">Quantidade inicial</label><input class="field" id="newQty" type="number" min="0" step="1" value="0" required></div>
 <div class="fieldgroup"><label for="newMin">Estoque mínimo</label><input class="field" id="newMin" type="number" min="0" step="1" value="0" required></div>
 </div><div class="modalactions"><button type="button" class="btn" id="cancelBtn">Cancelar</button><button type="submit" class="btn primary">Adicionar</button></div>
@@ -81,12 +81,12 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const fmtDate=s=>{try{return new Intl.DateTimeFormat("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(s))}catch{return"—"}};
 const isLow=x=>x.min_qty>0&&x.qty<=x.min_qty;
 const sum=cat=>items.filter(x=>!cat||x.category===cat).reduce((a,x)=>a+x.qty,0);
-function localRead(){try{return JSON.parse(localStorage.getItem("estoque-local")||"null")}catch{return null}}
-function localSave(){localStorage.setItem("estoque-local",JSON.stringify(items));localStorage.setItem("estoque-history",JSON.stringify(history))}
+function localRead(){try{const saved=JSON.parse(localStorage.getItem("estoque-local")||"null");return Array.isArray(saved)?saved:(saved?.items||null)}catch{return null}}
+function localSave(){localStorage.setItem("estoque-local",JSON.stringify({items,history}));localStorage.setItem("estoque-history",JSON.stringify(history))}
 function setBanner(text,warn=false){$("connectionText").textContent=text;$("connectionBanner").classList.toggle("warn",warn);$("configNotice").classList.toggle("hidden",!warn)}
 function render(){
- $("statProducts").textContent=items.length;$("statUnits").textContent=sum();$("statFitas").textContent=sum("Fitas");$("statLow").textContent=items.filter(isLow).length;
- $("countTodos").textContent=items.length;$("countFitas").textContent=items.filter(x=>x.category==="Fitas").length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countPistoes").textContent=items.filter(x=>x.category==="Pistões").length;
+ $("statProducts").textContent=items.length;$("statUnits").textContent=sum();$("statFerragens").textContent=sum("Ferragens");$("statLow").textContent=items.filter(isLow).length;
+ $("countTodos").textContent=items.length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countPistoes").textContent=items.filter(x=>x.category==="Pistões").length;
  const q=$("search").value.trim().toLocaleLowerCase("pt-BR");
  const shown=items.filter(x=>(category==="Todos"||x.category===category)&&(!lowOnly||isLow(x))&&(!q||x.name.toLocaleLowerCase("pt-BR").includes(q))).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
  $("rows").innerHTML=shown.map(x=>{let tag=x.qty===0?'<span class="tag empty">Zerado</span>':isLow(x)?'<span class="tag low">Repor</span>':'<span class="tag">Disponível</span>';
@@ -106,6 +106,7 @@ async function persistItem(x){
  else localSave();
 }
 async function loadCloud(){
+ const {error:removeTapeError}=await db.from("inventory_items").delete().eq("user_id",user.id).eq("category","Fitas");if(removeTapeError)throw removeTapeError;
  const {data,error}=await db.from("inventory_items").select("*").order("name");if(error)throw error;
  items=(data||[]).map(toItem);
  const h=await db.from("stock_movements").select("*").order("created_at",{ascending:false}).limit(50);if(h.error)throw h.error;history=h.data||[];
@@ -125,7 +126,7 @@ async function start(){
  const cfg=window.ESTOQUE_CONFIG||{};
  const configured=cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY;
  if(!configured){
-   mode="local";const saved=localRead();items=saved?.items||SEED.map(([name,category,qty],i)=>({id:"seed-"+i,name,category,qty,min_qty:0,notes:"",updated_at:new Date().toISOString()}));history=JSON.parse(localStorage.getItem("estoque-history")||"[]");
+   mode="local";const saved=localRead();items=(saved||SEED.map(([name,category,qty],i)=>({id:"seed-"+i,name,category,qty,min_qty:0,notes:"",updated_at:new Date().toISOString()}))).filter(x=>x.category!=="Fitas");history=JSON.parse(localStorage.getItem("estoque-history")||"[]");localSave();
    $("authCard").classList.add("hidden");$("app").classList.remove("hidden");$("logoutBtn").classList.add("hidden");setBanner("Modo local: alterações ficam apenas neste navegador. Configure o Supabase para sincronizar dispositivos.",true);render();return;
  }
  mode="cloud";db=createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
