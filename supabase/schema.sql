@@ -5,7 +5,7 @@ create table if not exists public.inventory_items (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
-  category text not null check (category in ('Fitas','Ferragens','Pistões')),
+  category text not null check (category in ('Ferragens','Pistões','Parafusos')),
   qty integer not null default 0 check (qty >= 0),
   min_qty integer not null default 0 check (min_qty >= 0),
   notes text not null default '',
