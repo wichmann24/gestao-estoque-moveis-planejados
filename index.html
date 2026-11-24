@@ -153,9 +153,10 @@ async function loadCloud(){
  }
  render();setBanner("Conectado à nuvem. Alterações sincronizadas em tempo real.");
  if(channel)await db.removeChannel(channel);
- channel=db.channel("estoque-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"inventory_items",filter:"user_id=eq."+user.id},()=>refreshFromRealtime()).on("postgres_changes",{event:"*",schema:"public",table:"stock_movements",filter:"user_id=eq."+user.id},()=>refreshHistory()).subscribe();
+ channel=db.channel("estoque-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"inventory_items",filter:"user_id=eq."+user.id},()=>refreshFromRealtime()).on("postgres_changes",{event:"*",schema:"public",table:"stock_movements",filter:"user_id=eq."+user.id},()=>refreshHistory()).subscribe((status,error)=>{if(status==="SUBSCRIBED"){setBanner("Conectado à nuvem. Atualização em tempo real ativa.");}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){setBanner("Sincronização automática ativa (verificação periódica).",true);if(error)console.warn("Realtime:",error)}});startSyncFallback();
 }
-let refreshTimer=null;
+let refreshTimer=null,syncPoll=null;
+function startSyncFallback(){if(syncPoll)clearInterval(syncPoll);syncPoll=setInterval(()=>{if(mode==="cloud"&&user){refreshFromRealtime();refreshHistory()}},4000)}
 async function refreshFromRealtime(){clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{const {data,error}=await db.from("inventory_items").select("*").order("name");if(!error){items=(data||[]).map(toItem);render()}}catch(e){console.warn(e)}},250)}
 async function refreshHistory(){try{const h=await db.from("stock_movements").select("*").order("created_at",{ascending:false}).limit(50);if(!h.error){history=h.data||[];render()}}catch(e){console.warn(e)}}
 async function start(){
