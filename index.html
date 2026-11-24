@@ -114,8 +114,7 @@ async function loadCloud(){
  const oldSupport=items.find(x=>x.category==="Ferragens"&&["suporte cabide","suporte de cabide","suporte cabide vesto","suporte de cabide vesto","suporte de cabide vester"].includes(x.name.trim().toLocaleLowerCase("pt-BR")));
  let silverSupport=items.find(x=>x.category==="Ferragens"&&x.name==="Suporte de cabide vester Prata");
  if(oldSupport){if(silverSupport){const {error:delError}=await db.from("inventory_items").delete().eq("id",oldSupport.id).eq("user_id",user.id);if(delError)throw delError;items=items.filter(x=>x.id!==oldSupport.id)}else{const {error:renameError}=await db.from("inventory_items").update({name:"Suporte de cabide vester Prata",qty:2,updated_at:new Date().toISOString()}).eq("id",oldSupport.id).eq("user_id",user.id);if(renameError)throw renameError;oldSupport.name="Suporte de cabide vester Prata";oldSupport.qty=2;silverSupport=oldSupport}}
- if(!silverSupport){const row={id:crypto.randomUUID(),user_id:user.id,name:"Suporte de cabide vester Prata",category:"Ferragens",qty:2,min_qty:0,notes:"",updated_at:new Date().toISOString()};const {error:insertError}=await db.from("inventory_items").insert(row);if(insertError)throw insertError;items.push(toItem(row))}
- else if(silverSupport.qty!==2){const {error:qtyError}=await db.from("inventory_items").update({qty:2,updated_at:new Date().toISOString()}).eq("id",silverSupport.id).eq("user_id",user.id);if(qtyError)throw qtyError;silverSupport.qty=2}
+
  // Atualiza nomes antigos para explicitar o acabamento bronze.
  for(const [oldName,newName] of [["Puxador aria 20cm","Puxador Aria Bronze 20cm"],["Puxador aria 15cm","Puxador Aria Bronze 15cm"]]){
    const oldItem=items.find(x=>x.category==="Ferragens"&&x.name===oldName);
@@ -134,23 +133,9 @@ async function loadCloud(){
      legacyAria.name="Puxador Aria Bronze 20cm";legacyAria.qty=2;aria20=legacyAria;
    }
  }
- if(aria20&&aria20.qty!==2){const {error}=await db.from("inventory_items").update({qty:2,updated_at:new Date().toISOString()}).eq("id",aria20.id).eq("user_id",user.id);if(error)throw error;aria20.qty=2}
- if(!aria20){const row={id:crypto.randomUUID(),user_id:user.id,name:"Puxador Aria Bronze 20cm",category:"Ferragens",qty:2,min_qty:0,notes:"",updated_at:new Date().toISOString()};const {error}=await db.from("inventory_items").insert(row);if(error)throw error;items.push(toItem(row))}
- if(aria15&&aria15.qty!==4){const {error}=await db.from("inventory_items").update({qty:4,updated_at:new Date().toISOString()}).eq("id",aria15.id).eq("user_id",user.id);if(error)throw error;aria15.qty=4}
- if(!aria15){const row={id:crypto.randomUUID(),user_id:user.id,name:"Puxador Aria Bronze 15cm",category:"Ferragens",qty:4,min_qty:0,notes:"",updated_at:new Date().toISOString()};const {error}=await db.from("inventory_items").insert(row);if(error)throw error;items.push(toItem(row))}
+
  const h=await db.from("stock_movements").select("*").order("created_at",{ascending:false}).limit(50);if(h.error)throw h.error;history=h.data||[];
- if(items.length===0){
-   const seedRows=SEED.map(([name,category,qty],i)=>({id:crypto.randomUUID(),user_id:user.id,name,category,qty,min_qty:0,notes:name==="Ponteiras"?"Quantidade consolidada das duas linhas do documento: 43 + 26.":"",updated_at:new Date().toISOString()}));
-   const {error:seedError}=await db.from("inventory_items").insert(seedRows);if(seedError)throw seedError;
-   items=seedRows.map(toItem);
- }else{
-   const missing=SEED.filter(([name,cat])=>cat==="Parafusos"&&!items.some(x=>x.category===cat&&x.name===name));
-   if(missing.length){
-     const rows=missing.map(([name,category,qty])=>({id:crypto.randomUUID(),user_id:user.id,name,category,qty,min_qty:0,notes:"Quantidade inicial calculada pelas caixas informadas.",updated_at:new Date().toISOString()}));
-     const {error:insertError}=await db.from("inventory_items").insert(rows);if(insertError)throw insertError;
-     items.push(...rows.map(toItem));
-   }
- }
+
  render();setBanner("Conectado à nuvem. Alterações sincronizadas em tempo real.");
  if(channel)await db.removeChannel(channel);
  channel=db.channel("estoque-"+user.id).on("postgres_changes",{event:"*",schema:"public",table:"inventory_items",filter:"user_id=eq."+user.id},()=>refreshFromRealtime()).on("postgres_changes",{event:"*",schema:"public",table:"stock_movements",filter:"user_id=eq."+user.id},()=>refreshHistory()).subscribe((status,error)=>{if(status==="SUBSCRIBED"){setBanner("Conectado à nuvem. Atualização em tempo real ativa.");}else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED"){setBanner("Sincronização automática ativa (verificação periódica).",true);if(error)console.warn("Realtime:",error)}});startSyncFallback();
@@ -185,7 +170,7 @@ $("addBtn").addEventListener("click",()=>{if(mode==="cloud"&&!user){alert("Entre
 $("productForm").addEventListener("submit",async e=>{e.preventDefault();const name=$("newName").value.trim(),category=$("newCat").value,qty=Math.max(0,Math.floor(Number($("newQty").value)||0)),min_qty=Math.max(0,Math.floor(Number($("newMin").value)||0));if(!name)return;if(items.some(x=>x.id!==editingId&&x.category===category&&x.name.toLocaleLowerCase("pt-BR")===name.toLocaleLowerCase("pt-BR"))){alert("Esse produto já existe nessa categoria.");return}
  if(editingId){const x=items.find(a=>a.id===editingId);if(!x)return;const old={...x};x.name=name;x.category=category;x.qty=qty;x.min_qty=min_qty;try{if(qty!==old.qty)await logMove(x,qty-old.qty,"Ajuste na edição");await persistItem(x);if(mode==="local")localSave();render();closeModal()}catch(err){Object.assign(x,old);render();alert("Não foi possível salvar a edição: "+err.message)}}else{const x={id:crypto.randomUUID(),name,category,qty,min_qty,notes:"",updated_at:new Date().toISOString()};items.push(x);try{await persistItem(x);if(qty)await logMove(x,qty,"Cadastro");if(mode==="local")localSave();render();closeModal()}catch(err){items=items.filter(a=>a.id!==x.id);render();alert("Não foi possível cadastrar: "+err.message)}}
 });
-$("rows").addEventListener("click",async e=>{const row=e.target.closest("tr[data-id]");if(!row)return;const x=items.find(a=>a.id===row.dataset.id);if(!x)return;if(e.target.closest("[data-edit]")){editingId=x.id;$("newName").value=x.name;$("newCat").value=x.category;$("newQty").value=x.qty;$("newMin").value=x.min_qty;$("modalTitle").textContent="Editar material";$("modalDescription").textContent="Altere o nome, a categoria, o saldo ou o estoque mínimo.";$("saveProductBtn").textContent="Salvar alterações";modal.classList.add("show");return}if(e.target.closest("[data-delete]")){if(!confirm("Excluir \""+x.name+"\" do estoque? Essa ação não pode ser desfeita."))return;try{if(mode==="cloud"){const {error}=await db.from("inventory_items").delete().eq("id",x.id).eq("user_id",user.id);if(error)throw error}items=items.filter(a=>a.id!==x.id);if(mode==="local")localSave();render()}catch(err){alert("Não foi possível excluir: "+err.message)}}});
+$("rows").addEventListener("click",async e=>{const row=e.target.closest("tr[data-id]");if(!row)return;const x=items.find(a=>a.id===row.dataset.id);if(!x)return;if(e.target.closest("[data-edit]")){editingId=x.id;$("newName").value=x.name;$("newCat").value=x.category;$("newQty").value=x.qty;$("newMin").value=x.min_qty;$("modalTitle").textContent="Editar material";$("modalDescription").textContent="Altere o nome, a categoria, o saldo ou o estoque mínimo.";$("saveProductBtn").textContent="Salvar alterações";modal.classList.add("show");return}if(e.target.closest("[data-delete]")){if(!confirm("Excluir \""+x.name+"\" do estoque? Essa ação não pode ser desfeita."))return;try{if(mode==="cloud"){const {data:deleted,error}=await db.from("inventory_items").delete().eq("id",x.id).eq("user_id",user.id).select("id");if(error)throw error;if(!deleted||deleted.length===0)throw new Error("O banco não confirmou a exclusão. Verifique sua conexão e as permissões da conta.");}items=items.filter(a=>a.id!==x.id);if(mode==="local")localSave();render()}catch(err){alert("Não foi possível excluir: "+err.message)}}});
 $("backupBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify({items,history,exported_at:new Date().toISOString()},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="backup-gestao-estoque.json";a.click();URL.revokeObjectURL(url)});
 start().catch(e=>{console.error(e);setBanner("Falha ao iniciar: "+e.message,true)});
 </script>
