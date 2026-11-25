@@ -50,6 +50,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <button class="tab" data-cat="Ferragens">Ferragens <span class="count" id="countFerragens"></span></button>
 <button class="tab" data-cat="Alumínios">Alumínios <span class="count" id="countAluminios"></span></button>
 <button class="tab" data-cat="Parafusos">Parafusos <span class="count" id="countParafusos"></span></button>
+<button class="tab" data-cat="Matérias">Matérias <span class="count" id="countMaterias"></span></button>
 </nav>
 <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Saldo atual</th><th>Estoque mínimo</th><th>Movimentar</th><th>Situação</th><th>Atualizado</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table><div id="empty" class="empty hidden">Nenhum produto encontrado.</div></div>
 </section>
@@ -62,7 +63,7 @@ header{background:var(--dark);color:#fff;padding:24px 0;border-bottom:4px solid 
 <h2 id="modalTitle">Novo produto</h2><p id="modalDescription">Cadastre um novo material no seu estoque.</p>
 <div class="formgrid">
 <div class="fieldgroup"><label for="newName">Nome do produto</label><input class="field" id="newName" required maxlength="100" placeholder="Nome do material"></div>
-<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Ferragens</option><option>Alumínios</option><option>Parafusos</option></select></div>
+<div class="fieldgroup"><label for="newCat">Categoria</label><select class="field" id="newCat"><option>Ferragens</option><option>Alumínios</option><option>Parafusos</option><option>Matérias</option></select></div>
 <div class="fieldgroup"><label for="newQty">Quantidade inicial</label><input class="field" id="newQty" type="number" min="0" step="1" value="0" required></div>
 <div class="fieldgroup"><label for="newMin">Estoque mínimo</label><input class="field" id="newMin" type="number" min="0" step="1" value="0" required></div>
 </div><div class="modalactions"><button type="button" class="btn" id="cancelBtn">Cancelar</button><button type="submit" class="btn primary" id="saveProductBtn">Adicionar</button></div>
@@ -76,7 +77,7 @@ const SEED=[
 ["Pistão 80N branco","Ferragens",4],["Pistão 50N","Ferragens",1],["Pistão 60N","Ferragens",2],["Pistão 120N inverso","Ferragens",3],["Pistão 80N","Ferragens",6],["Pistão 140N","Ferragens",2],["Pistão 80N inverso","Ferragens",1],["Pistão 50N inverso","Ferragens",2],
 ["Parafuso 4x40 (caixa com 500)","Parafusos",1000],["Parafuso 6x60 (caixa com 100)","Parafusos",300],["Parafuso 4x25 (caixa com 1.000)","Parafusos",3000],["Parafuso 4x16 (caixa com 1.000)","Parafusos",4000]
 ];
-const ALLOWED_CATEGORIES=new Set(["Ferragens","Alumínios","Parafusos"]);
+const ALLOWED_CATEGORIES=new Set(["Ferragens","Alumínios","Parafusos","Matérias"]);
 const parseStockNumber=value=>{const n=Number(value);return Number.isSafeInteger(n)&&n>=0&&n<=1000000000?n:null};
 const toItem=p=>({id:p.id,name:p.name,category:p.category,qty:p.qty,min_qty:p.min_qty??0,notes:p.notes??"",updated_at:p.updated_at??new Date().toISOString()});
 let db=null,user=null,items=[],history=[],category="Todos",lowOnly=false,mode="local",channel=null;
@@ -89,7 +90,7 @@ function localSave(){localStorage.setItem("estoque-local",JSON.stringify({items,
 function setBanner(text,warn=false){$("connectionText").textContent=text;$("connectionBanner").classList.toggle("warn",warn);$("configNotice").classList.toggle("hidden",!warn)}
 function render(){
  $("statProducts").textContent=items.length;$("statUnits").textContent=sum();$("statFerragens").textContent=sum("Ferragens");$("statLow").textContent=items.filter(isLow).length;
- $("countTodos").textContent=items.length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countAluminios").textContent=items.filter(x=>x.category==="Alumínios").length;$("countParafusos").textContent=items.filter(x=>x.category==="Parafusos").length;
+ $("countTodos").textContent=items.length;$("countFerragens").textContent=items.filter(x=>x.category==="Ferragens").length;$("countAluminios").textContent=items.filter(x=>x.category==="Alumínios").length;$("countParafusos").textContent=items.filter(x=>x.category==="Parafusos").length;$("countMaterias").textContent=items.filter(x=>x.category==="Matérias").length;
  const q=$("search").value.trim().toLocaleLowerCase("pt-BR");
  const shown=items.filter(x=>(category==="Todos"||x.category===category)&&(!lowOnly||isLow(x))&&(!q||x.name.toLocaleLowerCase("pt-BR").includes(q))).sort((a,b)=>a.name.localeCompare(b.name,"pt-BR"));
  $("rows").innerHTML=shown.map(x=>{let tag=x.qty===0?'<span class="tag empty">Zerado</span>':isLow(x)?'<span class="tag low">Repor</span>':'<span class="tag">Disponível</span>';
